@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Local photo source — don't commit personal photos
+source-photo.*
+
+# Virtual env activation scripts
+.env
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/

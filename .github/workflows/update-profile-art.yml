@@ -1,0 +1,45 @@
+name: Update profile art
+
+"on":
+  schedule:
+    - cron: "17 6 * * *"   # ~06:17 UTC daily — stagger away from the :00 rush
+  workflow_dispatch: {}     # allow manual trigger from the Actions tab
+  push:
+    branches: [main]
+
+permissions:
+  contents: write           # allow the bot to push the refreshed SVG back
+
+jobs:
+  heatmap:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - uses: actions/checkout@v4
+
+      # ── Python ──────────────────────────────────────────────────────────────
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ── Install only what the daily scripts need (no Pillow/rembg/cv2) ──────
+      - name: Install runtime dependencies
+        run: pip install requests beautifulsoup4
+
+      # ── Fetch fresh contribution data ────────────────────────────────────────
+      - name: Fetch contribution data
+        run: python scripts/fetch_contributions.py
+        env:
+          GITHUB_USER: ${{ github.repository_owner }}
+
+      # ── Re-render the heatmap SVG ────────────────────────────────────────────
+      - name: Render heatmap SVG
+        run: python scripts/render_heatmap_svg.py
+
+      # ── Commit + push if anything changed ────────────────────────────────────
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: refresh contribution graph [skip ci]"
+          file_pattern: "data/contributions.json contrib-heatmap.svg"
+          # [skip ci] prevents this commit from re-triggering the workflow.
