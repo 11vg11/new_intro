@@ -6,6 +6,7 @@ __pycache__/
 
 # Local photo source — don't commit personal photos
 source-photo.*
+source-prepped.png
 
 # Virtual env activation scripts
 .env
