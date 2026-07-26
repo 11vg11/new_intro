@@ -198,9 +198,6 @@ EMAIL       Direct communication
 ────────────────────────────────────────
 ```
 
-[![LinkedIn](https://img.shields.io/badge/LINKEDIN-OPEN_CHANNEL-000000?style=for-the-badge&logo=linkedin&logoColor=00ff41)](https://linkedin.com/in/valodya-gevorgyan-783531274)
-[![GitHub](https://img.shields.io/badge/GITHUB-ACCESS_REPOSITORIES-000000?style=for-the-badge&logo=github&logoColor=00ff41)](https://github.com/11vg11)
-[![Gmail](https://img.shields.io/badge/GMAIL-SEND_MESSAGE-000000?style=for-the-badge&logo=gmail&logoColor=00ff41)](mailto:gevorgyanvalodya0@gmail.com)
 
 <br/>
 
