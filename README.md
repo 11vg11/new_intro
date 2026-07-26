@@ -169,17 +169,10 @@ WEB SECURITY             ███████████░░░░░░░�
 
 <br/><br/>
 
-<img src="https://github-readme-stats.vercel.app/api?username=11vg11&show_icons=true&hide_border=true&bg_color=0D1117&title_color=00FF41&icon_color=00FF41&text_color=39FF14&hide_rank=false" height="165" alt="GitHub statistics"/>
-
-<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=11vg11&layout=compact&hide_border=true&bg_color=0D1117&title_color=00FF41&text_color=39FF14&langs_count=8" height="165" alt="Most used languages"/>
-
-<br/>
-
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=11vg11&hide_border=true&background=0D1117&ring=00FF41&fire=39FF14&currStreakLabel=00FF41&sideLabels=39FF14&currStreakNum=FFFFFF&sideNums=FFFFFF&dates=7DFF9A" height="165" alt="GitHub streak"/>
-
-<br/>
-
-<img src="https://github-readme-activity-graph.vercel.app/graph?username=11vg11&bg_color=0D1117&color=39FF14&line=00FF41&point=FFFFFF&area=true&hide_border=true" width="95%" alt="Contribution graph"/>
+<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:16px;">
+  <img src="https://github-readme-stats.vercel.app/api?username=11vg11&show_icons=true&theme=github_dark&hide_border=true&count_private=true&include_all_commits=true" alt="GitHub statistics" height="180" />
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=11vg11&theme=github_dark&layout=compact&hide_border=true&langs_count=6" alt="Most used languages" height="180" />
+</div>
 
 </div>
 
