@@ -16,16 +16,21 @@ Writes:  contrib-heatmap.svg
 """
 
 import json
-import math
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+try:
+    from .config import get_output_paths
+except ImportError:  # pragma: no cover - direct script execution
+    from config import get_output_paths
+
 # ── Config ────────────────────────────────────────────────────────────────────
 ROOT      = Path(__file__).parent.parent
-IN_PATH   = ROOT / "data" / "contributions.json"
-OUT_PATH  = ROOT / "contrib-heatmap.svg"
+OUTPUT_PATHS = get_output_paths(ROOT)
+IN_PATH   = OUTPUT_PATHS["contributions"]
+OUT_PATH  = OUTPUT_PATHS["heatmap"]
 
 # Colour ramp: none → level 1 → … → level 5 (neon top)
 PALETTE = [
@@ -259,6 +264,7 @@ def main() -> None:
 
     data = json.loads(IN_PATH.read_text(encoding="utf-8"))
     svg  = build_svg(data)
+    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(svg, encoding="utf-8")
 
     days  = len(data.get("days", {}))

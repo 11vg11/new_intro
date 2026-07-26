@@ -16,10 +16,14 @@ Reads:   source-prepped.png  (produced by prep_photo.py)
 Writes:  avi-ascii.svg
 """
 
-import os
 import sys
 from pathlib import Path
 from xml.sax.saxutils import escape
+
+try:
+    from .config import get_output_paths
+except ImportError:  # pragma: no cover - direct script execution
+    from config import get_output_paths
 
 try:
     from PIL import Image
@@ -29,31 +33,30 @@ except ImportError as e:
     print("Run:  pip install pillow numpy")
     sys.exit(1)
 
-# ── Config ────────────────────────────────────────────────────────────────────
-ROOT        = Path(__file__).parent.parent
-INPUT_PATH  = ROOT / "source-prepped.png"
-OUTPUT_PATH = ROOT / "avi-ascii.svg"
+# Configuration
+ROOT = Path(__file__).parent.parent
+OUTPUT_PATHS = get_output_paths(ROOT)
+INPUT_PATH = ROOT / "source-prepped.png"
+OUTPUT_PATH = OUTPUT_PATHS["ascii"]
 
-# Character grid dimensions (cols × rows)
+# Character grid size
 COLS = 100
 ROWS = 53
 
-# ASCII density ramp: bright (sparse) → dark (dense)
-# Leading space maps the whitest pixels to nothing.
+# Bright-to-dark character ramp; whitespace preserves the brightest pixels
 RAMP = " .`:-=+*cs#%@"
 
-# Visual parameters
-FONT_SIZE   = 7        # px — monospace character size
-CHAR_W      = FONT_SIZE * 0.60   # approximate glyph width
-CHAR_H      = FONT_SIZE * 1.20   # line height
-FILL_COLOR  = "#c9d1d9"          # GitHub dark-mode text gray
-BG_COLOR    = "#0d1117"          # GitHub dark background
-CURSOR_W    = CHAR_W             # width of the block cursor
+# Render settings
+FONT_SIZE = 7
+CHAR_W = FONT_SIZE * 0.60
+CHAR_H = FONT_SIZE * 1.20
+FILL_COLOR = "#c9d1d9"
+BG_COLOR = "#0d1117"
+CURSOR_W = CHAR_W
 
 # Animation timing
-ROW_DURATION   = 0.06   # seconds per row to fully wipe in
-ROW_STAGGER    = 0.04   # extra delay between row starts
-FREEZE_HOLD    = 9999   # keep the final frame visible "forever"
+ROW_DURATION = 0.06
+ROW_STAGGER = 0.04
 
 
 def brightness_to_char(value: float) -> str:
@@ -166,6 +169,7 @@ def main() -> None:
     print(f"[make_ascii_svg] Grid: {len(grid[0])}×{len(grid)} chars")
 
     svg = build_svg(grid)
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(svg, encoding="utf-8")
     total_time = len(grid) * (ROW_DURATION + ROW_STAGGER)
     print(f"[make_ascii_svg] ✓ Saved → {OUTPUT_PATH}  (animation: ~{total_time:.1f}s)")

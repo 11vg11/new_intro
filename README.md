@@ -32,9 +32,9 @@
 
 ---
 
-## 🎨 GitHub Profile Art — How It Works
+## 🎨 GitHub Profile Art
 
-This repository powers a **fully automated, animated GitHub profile page**. It renders three SVG components that GitHub displays inline in the profile README:
+This repository generates three SVG assets for a GitHub profile README:
 
 | Asset | Description | Refresh |
 |---|---|---|
@@ -60,23 +60,25 @@ new_intro/
 │   └── requirements.txt             # Python dependencies
 ├── data/
 │   └── contributions.json           # Cached contribution data (auto-updated daily)
-├── contrib-heatmap.svg              # 🤖 Auto-generated — do not edit manually
-├── avi-ascii.svg                    # 🔧 Manually regenerated when photo changes
-├── info-card.svg                    # 🔧 Manually regenerated when details change
+├── output/
+│   ├── contrib-heatmap.svg         # 🤖 Auto-generated — do not edit manually
+│   ├── avi-ascii.svg               # 🔧 Manually regenerated when photo changes
+│   └── info-card.svg               # 🔧 Manually regenerated when details change
+├── photos/                         # Portrait images used by the ASCII workflow
 └── README.md                        # This file — the profile page itself
 ```
 
 ---
 
-## ⚙️ Setup — Use This as Your Own Profile
+## ⚙️ Setup
 
-### 1. Fork / Rename the repository
+### 1. Fork or rename the repository
 
-Create a GitHub repo named **exactly your GitHub username** (e.g. `yourname/yourname`). GitHub will automatically use it as your profile README.
+Create a GitHub repository named exactly like your GitHub username, such as `yourname/yourname`, so GitHub uses it as your profile README.
 
 ### 2. Configure the workflow
 
-The daily workflow reads your username from the repo context automatically:
+The daily workflow reads your username from the GitHub context automatically:
 
 ```yaml
 env:
@@ -85,7 +87,7 @@ env:
 
 No secrets or tokens needed — contribution data is scraped from the public HTML calendar.
 
-### 3. Customise the info card
+### 3. Customize the info card
 
 Edit the `ROWS` list in `scripts/make_info_card.py`:
 
@@ -106,9 +108,9 @@ Then regenerate:
 python scripts/make_info_card.py
 ```
 
-### 4. Generate your ASCII portrait (optional)
+### 4. Generate the ASCII portrait (optional)
 
-**Step 1** — Install the full dependencies (one-time, heavy packages):
+Install the full image dependencies once:
 
 ```bash
 pip install pillow numpy opencv-python rembg
@@ -133,7 +135,7 @@ python scripts/make_ascii_svg.py
 > STATIC=1 python scripts/make_ascii_svg.py
 > ```
 
-### 5. Push everything
+### 5. Push your changes
 
 ```bash
 git add contrib-heatmap.svg avi-ascii.svg info-card.svg README.md
@@ -141,7 +143,7 @@ git commit -m "chore: update profile art"
 git push
 ```
 
-The **daily workflow** (`update-profile-art.yml`) will then keep `contrib-heatmap.svg` fresh automatically — no further action needed.
+The daily workflow will keep the heatmap fresh automatically.
 
 ---
 
@@ -175,6 +177,45 @@ git-auto-commit-action
 ---
 
 ## 🐍 Running Scripts Locally
+
+### Fastest path: run everything with one command
+
+```bash
+make run
+```
+
+This runs the contribution scraper, renders the heatmap, generates the info card, and builds the ASCII portrait from a photo stored in the photos/ folder.
+
+Useful helpers:
+
+```bash
+make photo    # regenerate the portrait pipeline only
+make clean    # remove generated assets and cached prep state
+```
+
+You can also use the underlying script directly:
+
+```bash
+python3 scripts/run_profile.py
+```
+
+Place a portrait image in the photos/ directory, for example:
+
+```bash
+photos/my-photo.jpg
+```
+
+Then run:
+
+```bash
+python3 scripts/run_profile.py
+```
+
+You can also point at a specific image:
+
+```bash
+python3 scripts/run_profile.py --photo /path/to/your-photo.jpg
+```
 
 ### Install runtime dependencies (for the heatmap only)
 

@@ -20,11 +20,15 @@ Env:
 
 import json
 import os
-import sys
 import urllib.request
 from datetime import date, datetime, timedelta
 from html.parser import HTMLParser
 from pathlib import Path
+
+try:
+    from .config import DATA_DIR, get_github_user
+except ImportError:  # pragma: no cover - direct script execution
+    from config import DATA_DIR, get_github_user
 
 try:
     import requests
@@ -35,8 +39,8 @@ except ImportError:
 
 # ── Config ────────────────────────────────────────────────────────────────────
 ROOT      = Path(__file__).parent.parent
-OUT_PATH  = ROOT / "data" / "contributions.json"
-USERNAME  = os.environ.get("GITHUB_USER", "avivashishta")
+OUT_PATH  = DATA_DIR / "contributions.json"
+USERNAME  = get_github_user()
 URL       = f"https://github.com/users/{USERNAME}/contributions"
 HEADERS   = {
     "User-Agent": (
@@ -62,8 +66,8 @@ class ContributionHTMLParser(HTMLParser):
         if not date_str:
             return
 
-        tooltip = attr_dict.get("aria-label", "")
         count = None
+        tooltip = (attr_dict.get("aria-label") or "").strip()
         if tooltip:
             try:
                 count = int(tooltip.split(" contribution")[0].split()[-1])
@@ -71,8 +75,12 @@ class ContributionHTMLParser(HTMLParser):
                 count = None
 
         if count is None:
-            level = int(attr_dict.get("data-level", "0") or "0")
-            count = [0, 1, 3, 6, 10][level]
+            raw_level = attr_dict.get("data-level") or "0"
+            try:
+                level = int(raw_level)
+            except ValueError:
+                level = 0
+            count = [0, 1, 3, 6, 10][level] if 0 <= level < len([0, 1, 3, 6, 10]) else 0
 
         self.days[date_str] = count
 
@@ -81,15 +89,18 @@ class ContributionHTMLParser(HTMLParser):
 
 def fetch_html() -> str:
     print(f"[fetch_contributions] Fetching {URL} …")
-    if requests is not None:
-        resp = requests.get(URL, headers=HEADERS, timeout=TIMEOUT)
-        resp.raise_for_status()
-        return resp.text
+    try:
+        if requests is not None:
+            resp = requests.get(URL, headers=HEADERS, timeout=TIMEOUT)
+            resp.raise_for_status()
+            return resp.text
 
-    req = urllib.request.Request(URL, headers=HEADERS)
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
-        charset = resp.headers.get_content_charset("utf-8")
-        return resp.read().decode(charset, "replace")
+        req = urllib.request.Request(URL, headers=HEADERS)
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+            charset = resp.headers.get_content_charset("utf-8")
+            return resp.read().decode(charset, "replace")
+    except Exception as exc:
+        raise RuntimeError(f"Unable to fetch contribution data for {USERNAME}: {exc}") from exc
 
 
 def parse_days(html: str) -> dict[str, int]:
@@ -99,13 +110,26 @@ def parse_days(html: str) -> dict[str, int]:
         days: dict[str, int] = {}
 
         for td in soup.find_all("td", attrs={"data-date": True}):
-            date_str = td["data-date"]
-            tooltip = td.get("aria-label", "")
-            try:
-                count = int(tooltip.split(" contribution")[0].split()[-1])
-            except (ValueError, IndexError):
-                level = int(td.get("data-level", 0))
-                count = [0, 1, 3, 6, 10][level]
+            date_str = td.get("data-date")
+            if not date_str:
+                continue
+
+            count = None
+            tooltip = (td.get("aria-label") or "").strip()
+            if tooltip:
+                try:
+                    count = int(tooltip.split(" contribution")[0].split()[-1])
+                except (ValueError, IndexError):
+                    count = None
+
+            if count is None:
+                raw_level = td.get("data-level") or "0"
+                try:
+                    level = int(raw_level)
+                except ValueError:
+                    level = 0
+                count = [0, 1, 3, 6, 10][level] if 0 <= level < len([0, 1, 3, 6, 10]) else 0
+
             days[date_str] = count
 
         return days
@@ -161,12 +185,20 @@ def compute_stats(days: dict[str, int]) -> dict:
 
 
 def main() -> None:
-    html = fetch_html()
+    try:
+        html = fetch_html()
+    except RuntimeError as exc:
+        print(f"[fetch_contributions] ERROR: {exc}")
+        raise
+
     days = parse_days(html)
 
     if not days:
         print("[fetch_contributions] WARNING: no day cells found — "
               "GitHub may have changed their markup.")
+
+    if not any(days.values()):
+        print("[fetch_contributions] INFO: the scraped calendar contains no contributions for this account.")
 
     stats = compute_stats(days)
     out = {

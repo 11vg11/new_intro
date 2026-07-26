@@ -15,9 +15,14 @@ Output:
     source-prepped.png  (grayscale, 512 px wide, white background)
 """
 
+import hashlib
 import sys
-import os
 from pathlib import Path
+
+try:
+    from .config import OUTPUT_DIR
+except ImportError:  # pragma: no cover - direct script execution
+    from config import OUTPUT_DIR
 
 try:
     from PIL import Image
@@ -29,11 +34,12 @@ except ImportError as e:
     print("Run:  pip install pillow numpy opencv-python rembg")
     sys.exit(1)
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# Configuration
 OUTPUT_PATH = Path(__file__).parent.parent / "source-prepped.png"
-TARGET_WIDTH = 512          # resize to this width before ASCII conversion
-CLAHE_CLIP_LIMIT = 3.0      # aggressiveness of local contrast boost
-CLAHE_TILE_GRID = (8, 8)    # CLAHE grid size
+TARGET_WIDTH = 512
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+CLAHE_CLIP_LIMIT = 3.0
+CLAHE_TILE_GRID = (8, 8)
 
 
 def remove_background(img_bytes: bytes) -> Image.Image:
@@ -65,25 +71,27 @@ def process(input_path: str) -> None:
     print(f"[prep_photo] Reading {src} …")
     img_bytes = src.read_bytes()
 
-    # Step 1 — Background removal
-    rgba = remove_background(img_bytes)
+    if OUTPUT_PATH.exists():
+        current_hash = hashlib.sha256(img_bytes).hexdigest()
+        existing_hash_path = OUTPUT_PATH.with_suffix(".sha256")
+        if existing_hash_path.exists() and existing_hash_path.read_text(encoding="utf-8") == current_hash:
+            print(f"[prep_photo] ✓ Existing prepared image is up to date — {OUTPUT_PATH}")
+            return
 
-    # Step 2 — Composite on white, then to grayscale NumPy array
+    rgba = remove_background(img_bytes)
     rgb = composite_on_white(rgba)
     gray_np = cv2.cvtColor(np.array(rgb), cv2.COLOR_RGB2GRAY)
 
-    # Step 3 — CLAHE contrast boost
     print("[prep_photo] Applying CLAHE contrast enhancement …")
     enhanced = apply_clahe(gray_np)
 
-    # Step 4 — Resize to target width, preserve aspect ratio
     h, w = enhanced.shape
     new_h = int(TARGET_WIDTH * h / w)
     resized = cv2.resize(enhanced, (TARGET_WIDTH, new_h), interpolation=cv2.INTER_LANCZOS4)
 
-    # Step 5 — Save
     result = Image.fromarray(resized)
     result.save(OUTPUT_PATH)
+    OUTPUT_PATH.with_suffix(".sha256").write_text(hashlib.sha256(img_bytes).hexdigest(), encoding="utf-8")
     print(f"[prep_photo] ✓ Saved → {OUTPUT_PATH}  ({TARGET_WIDTH}×{new_h})")
 
 

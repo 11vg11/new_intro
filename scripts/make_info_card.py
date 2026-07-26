@@ -18,9 +18,15 @@ import os
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+try:
+    from .config import get_info_card_rows, get_output_paths
+except ImportError:  # pragma: no cover - direct script execution
+    from config import get_info_card_rows, get_output_paths
+
 # ── Config ────────────────────────────────────────────────────────────────────
 ROOT        = Path(__file__).parent.parent
-OUTPUT_PATH = ROOT / "info-card.svg"
+OUTPUT_PATHS = get_output_paths(ROOT)
+OUTPUT_PATH = OUTPUT_PATHS["info_card"]
 STATIC      = os.environ.get("STATIC", "") == "1"
 
 CARD_W = 490
@@ -39,17 +45,7 @@ ORANGE    = "#ffa657"    # orange — highlight items
 HANDLE    = "avivashishta"         # shown as  avivashishta@github
 SEPARATOR = "─" * 26              # matches the key width visually
 
-ROWS = [
-    # (key_color, key,          value_color, value)
-    (ACCENT, "Now",       WHITE,  "Building developer tools & open-source libs"),
-    (ACCENT, "Prev",      WHITE,  "Full-stack @ stealth startup · 2 yrs"),
-    (ACCENT, "Stack",     GREEN,  "Python · TypeScript · Rust · Go"),
-    (ACCENT, "Editor",    WHITE,  "Neovim (btw)"),
-    (ACCENT, "OS",        WHITE,  "Arch Linux / macOS"),
-    (ACCENT, "Focus",     ORANGE, "DX · performance · clean APIs"),
-    (ACCENT, "Learning",  WHITE,  "Zig · WebGPU · distributed systems"),
-    (ACCENT, "Contact",   ACCENT, "avivashishta.com · hi@avivashishta.com"),
-]
+ROWS = get_info_card_rows()
 
 # Layout
 PAD_X      = 18
@@ -148,6 +144,7 @@ def main() -> None:
     lines.append("</svg>")
 
     svg = "\n".join(lines)
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(svg, encoding="utf-8")
     print(f"[make_info_card] ✓ Saved → {OUTPUT_PATH}  (static={STATIC})")
 
