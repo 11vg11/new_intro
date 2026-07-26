@@ -42,7 +42,7 @@
 ║  EDUCATION      Applied Computer Science & AI                      ║
 ║                 Sapienza University of Rome — Erasmus              ║
 ║  TRAINING       Picsart Academy — Cybersecurity Track              ║
-║  FOCUS          Secure Infrastructure · Linux · Automation          ║
+║  FOCUS          Secure Infrastructure · Linux · Automation         ║
 ║  LANGUAGES      C · Python · JavaScript · Bash                     ║
 ║                                                                    ║
 ║  STATUS         [ ACTIVE ]                                         ║
@@ -192,7 +192,7 @@ WEB SECURITY             ███████████░░░░░░░�
 ```text
 AVAILABLE CHANNELS
 ────────────────────────────────────────
-LINKEDIN    Professional network
+LINKEDIN    Professional network 
 GITHUB      Projects and source code
 EMAIL       Direct communication
 ────────────────────────────────────────
